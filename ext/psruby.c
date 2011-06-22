@@ -53,7 +53,7 @@ psdoc_set_parameter (VALUE self, VALUE key, VALUE value)
 	PSDoc *ps ;
 	char *ps_key = STR2CSTR (key) ;
 	char *ps_value = STR2CSTR (value) ;
-    Data_Get_Struct (self, PSDoc, ps) ;
+	Data_Get_Struct (self, PSDoc, ps) ;
 	PS_set_parameter (ps, ps_key, ps_value) ;
 	
 	return self ;
