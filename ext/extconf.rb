@@ -1,6 +1,5 @@
 require 'mkmf'
 
-dir_config("psruby")
-
-create_makefile("psruby")
+create_header()
+create_makefile("PsRuby")
 
