@@ -66,7 +66,7 @@ psdoc_begin_page (VALUE self, VALUE width, VALUE height)
 	double ps_width, ps_height ;
 	ps_width = NUM2DBL (width) ;
 	ps_height = NUM2DBL (height) ;
-    Data_Get_Struct (self, PSDoc, ps) ;
+	Data_Get_Struct (self, PSDoc, ps) ;
 	PS_begin_page (ps, (float) ps_width, (float) ps_height) ;
 
 	return self ;
@@ -158,9 +158,182 @@ psdoc_find_font (VALUE self, VALUE font_name, VALUE embed)
 	char *ps_font_name = STR2CSTR (font_name) ;
 	int ps_font ;
 	int ps_embed = NUM2INT (embed) ;
-	ps_font = PS_findfont (ps, ps_font_name, 'builtin', ps_embed) ;
+	char *encoding = "builtin" ;
+	ps_font = PS_findfont (ps, ps_font_name, encoding, ps_embed) ;
 
 	return INT2NUM (ps_font) ;
+}
+
+static VALUE
+psdoc_set_font (VALUE self, VALUE font, VALUE font_size)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_font_size = NUM2DBL (font_size) ;
+	int ps_font = NUM2INT (font) ;
+	PS_setfont (ps, ps_font, (float) ps_font_size) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_show_xy (VALUE self, VALUE text, VALUE x, VALUE y)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	char *ps_text = STR2CSTR (text) ;
+	double ps_x = NUM2DBL (x) ;
+	double ps_y = NUM2DBL (y) ;
+	PS_show_xy (ps, ps_text, (float) x, (float) y) ;	
+
+	return self ;
+}
+
+static VALUE
+psdoc_string_geometry (VALUE self, VALUE text, VALUE font, VALUE font_size)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	char *ps_text = STR2CSTR (text) ;
+	double ps_width, ps_fontsize ;
+	int ps_font = NUM2INT (font) ;
+	ps_fontsize = NUM2DBL (font_size) ;
+	int text_len = -1 ;
+	float dimension[3] ;
+
+	ps_width = (double) PS_string_geometry (ps, ps_text, text_len, ps_font, (float) ps_fontsize, dimension) ; 
+
+	VALUE return_hash ;
+	return_hash = rb_hash_new() ;
+	VALUE width = rb_float_new ((double) dimension[0]) ;
+	VALUE descender = rb_float_new ((double) dimension[1]) ;
+	VALUE ascender = rb_float_new ((double) dimension[2]) ;
+
+	rb_hash_aset (return_hash, (VALUE) "width", width) ;
+	rb_hash_aset (return_hash, (VALUE) "descender", descender) ;
+	rb_hash_aset (return_hash, (VALUE) "ascender", ascender) ; 
+
+	return return_hash ;
+}
+
+static VALUE
+psdoc_save (VALUE self)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	PS_save (ps) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_restore (VALUE self)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	PS_restore (ps) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_translate (VALUE self, VALUE x, VALUE y)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_x, ps_y ;
+	ps_x = NUM2DBL (x) ;
+	ps_y = NUM2DBL (y) ;
+	PS_translate (ps, (float) ps_x, (float) ps_y) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_rotate (VALUE self, VALUE angle)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_angle = NUM2DBL (angle) ;
+
+	PS_rotate (ps, (float) ps_angle) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_rectangle (VALUE self, VALUE x, VALUE y, VALUE width, VALUE height)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_x, ps_y, ps_width, ps_height ;
+	ps_x = NUM2DBL (x) ;
+	ps_y = NUM2DBL (y) ;
+	ps_width = NUM2DBL (width) ;
+	ps_height = NUM2DBL (height) ;
+
+	PS_rect (ps, (float) ps_x, (float) ps_y, (float) ps_width, (float) ps_height) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_set_line_width (VALUE self, VALUE width)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_width = NUM2DBL (width) ;
+
+	PS_setlinewidth (ps, (float) ps_width) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_move_to (VALUE self, VALUE x, VALUE y)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_x, ps_y ;
+	ps_x = NUM2DBL (x) ;
+	ps_y = NUM2DBL (y) ;
+
+	PS_moveto (ps, (float) ps_x, (float) ps_y) ;
+
+	return self ;
+}
+
+static VALUE
+psdoc_line_to (VALUE self, VALUE x, VALUE y)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_x, ps_y ;
+	ps_x = NUM2DBL (x) ;
+	ps_y = NUM2DBL (y) ;
+
+	PS_lineto (ps, (float) ps_x, (float) ps_y) ;
+	
+	return self ;
+}
+
+static VALUE
+psdoc_set_color (VALUE self, VALUE type, VALUE color_space, VALUE c1, VALUE c2, VALUE c3, VALUE c4)
+{
+	PSDoc *ps ;
+	Data_Get_Struct (self, PSDoc, ps) ;
+	double ps_c1, ps_c2, ps_c3, ps_c4 ;
+	char *ps_type, *ps_colorspace ;
+	ps_type = STR2CSTR (type) ;
+	ps_colorspace = STR2CSTR (color_space) ;
+	ps_c1 = NUM2DBL (c1) ;
+	ps_c2 = NUM2DBL (c2) ;
+	ps_c3 = NUM2DBL (c3) ;
+	ps_c4 = NUM2DBL (c4) ;
+
+	PS_setcolor (ps, ps_type, ps_colorspace, (float) ps_c1, (float) ps_c2, (float) ps_c3, (float) ps_c4) ;
+	
+	return self ;
 }
 
 void
@@ -180,7 +353,19 @@ Init_PsRuby ( )
 	rb_define_method (rb_cPsDoc, "fill", psdoc_fill, 0) ;
 	rb_define_method (rb_cPsDoc, "get_value", psdoc_get_value, 2) ;
 	rb_define_method (rb_cPsDoc, "find_font", psdoc_find_font, 2) ;
+	rb_define_method (rb_cPsDoc, "set_font", psdoc_set_font, 2) ;
+	rb_define_method (rb_cPsDoc, "show_xy", psdoc_show_xy, 3) ;
+	rb_define_method (rb_cPsDoc, "string_geometry", psdoc_string_geometry, 3) ;
 	rb_define_method (rb_cPsDoc, "end_page", psdoc_end_page, 0) ;
+	rb_define_method (rb_cPsDoc, "save", psdoc_save, 0) ;
+	rb_define_method (rb_cPsDoc, "restore", psdoc_restore, 0) ;
+	rb_define_method (rb_cPsDoc, "translate", psdoc_translate, 2) ;
+	rb_define_method (rb_cPsDoc, "rotate", psdoc_rotate, 1) ;
+	rb_define_method (rb_cPsDoc, "rectangle", psdoc_rectangle, 4) ;
+	rb_define_method (rb_cPsDoc, "move_to", psdoc_move_to, 2) ;
+	rb_define_method (rb_cPsDoc, "set_line_width", psdoc_set_line_width, 1) ;
+	rb_define_method (rb_cPsDoc, "line_to", psdoc_line_to, 2) ;
+	rb_define_method (rb_cPsDoc, "set_color", psdoc_set_color, 6) ;
 	rb_define_method (rb_cPsDoc, "close", psdoc_close, 0) ;
 
 }
