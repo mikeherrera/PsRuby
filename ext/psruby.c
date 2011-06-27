@@ -278,6 +278,12 @@ psdoc_rectangle (VALUE self, VALUE x, VALUE y, VALUE width, VALUE height)
 }
 
 static VALUE
+psdoc_square (VALUE self, VALUE x, VALUE y, VALUE width)
+{
+	return psdoc_rectangle (self, x, y, width, width) ;
+}
+
+static VALUE
 psdoc_set_line_width (VALUE self, VALUE width)
 {
 	PSDoc *ps ;
@@ -362,6 +368,7 @@ Init_PsRuby ( )
 	rb_define_method (rb_cPsDoc, "translate", psdoc_translate, 2) ;
 	rb_define_method (rb_cPsDoc, "rotate", psdoc_rotate, 1) ;
 	rb_define_method (rb_cPsDoc, "rectangle", psdoc_rectangle, 4) ;
+	rb_define_method (rb_cPsDoc, "square", psdoc_square, 3) ;
 	rb_define_method (rb_cPsDoc, "move_to", psdoc_move_to, 2) ;
 	rb_define_method (rb_cPsDoc, "set_line_width", psdoc_set_line_width, 1) ;
 	rb_define_method (rb_cPsDoc, "line_to", psdoc_line_to, 2) ;
